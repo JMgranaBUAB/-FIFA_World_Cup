@@ -9,3 +9,6 @@ config.js
 # Archivos de sistema operativo
 .DS_Store
 Thumbs.db
+
+# Carpeta de compilación de Vercel (generada dinámicamente)
+public/
