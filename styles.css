@@ -1008,6 +1008,11 @@ a:hover {
     font-size: 0.7rem;
 }
 
+.footer-note {
+    margin-top: var(--space-sm);
+    font-style: italic;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
     .header-inner {
