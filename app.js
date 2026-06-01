@@ -11,8 +11,20 @@ class FootballAPI {
     }
 
     async fetch(endpoint, params = {}) {
-        const url = new URL(`${CONFIG.API_BASE}${endpoint}`);
-        Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+        let url;
+        const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.');
+        const headers = {};
+
+        if (isLocal) {
+            url = new URL(`${CONFIG.API_BASE}${endpoint}`);
+            Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+            headers['X-Auth-Token'] = CONFIG.API_TOKEN;
+        } else {
+            // Usar proxy serverless en producción para evitar CORS y ocultar el token
+            url = new URL(`${window.location.origin}/api/proxy`);
+            url.searchParams.set('endpoint', endpoint);
+            Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+        }
 
         const cacheKey = url.toString();
         const cached = this.cache.get(cacheKey);
@@ -20,9 +32,7 @@ class FootballAPI {
             return cached.data;
         }
 
-        const response = await window.fetch(url.toString(), {
-            headers: { 'X-Auth-Token': CONFIG.API_TOKEN }
-        });
+        const response = await window.fetch(url.toString(), { headers });
 
         if (!response.ok) {
             const errorBody = await response.text();
