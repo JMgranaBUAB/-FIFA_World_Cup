@@ -373,14 +373,14 @@ class WorldCupApp {
         // Filter only TOTAL standings for group stage
         const groupStandings = this.standingsData.filter(s => s.type === 'TOTAL' && s.stage === 'GROUP_STAGE');
 
-        /* if (groupStandings.length === 0) {
+        if (groupStandings.length === 0) {
             container.innerHTML = this.renderEmpty(
                 '📊',
                 'Clasificación no disponible aún',
                 'Los datos aparecerán cuando inicie la fase de grupos'
             );
             return;
-        } */
+        }
 
         container.innerHTML = groupStandings.map((group, i) => this.renderGroupCard(group, i)).join('');
     }
