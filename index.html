@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA World Cup 2026 — Dashboard en Vivo</title>
+    <meta name="description" content="Dashboard interactivo del Mundial FIFA 2026. Consulta partidos, clasificaciones y fases finales en tiempo real.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header" class="header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <div class="trophy-icon">🏆</div>
+                <div>
+                    <h1 class="header-title">FIFA World Cup</h1>
+                    <span class="header-subtitle">2026 · USA · MEX · CAN</span>
+                </div>
+            </div>
+            <nav id="main-nav" class="header-nav">
+                <button class="nav-btn active" data-tab="matches" id="nav-matches">
+                    <span class="nav-icon">⚽</span>
+                    <span class="nav-text">Partidos</span>
+                </button>
+                <button class="nav-btn" data-tab="standings" id="nav-standings">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Clasificación</span>
+                </button>
+                <button class="nav-btn" data-tab="knockout" id="nav-knockout">
+                    <span class="nav-icon">🏅</span>
+                    <span class="nav-text">Fases Finales</span>
+                </button>
+            </nav>
+            <button class="refresh-btn" id="refresh-btn" title="Actualizar datos">
+                <span class="refresh-icon">↻</span>
+                <span class="refresh-text">Actualizar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Matches Tab -->
+        <section id="tab-matches" class="tab-content active">
+            <div class="section-header">
+                <h2 class="section-title">Próximos Partidos</h2>
+                <div class="filter-bar" id="match-filters">
+                    <button class="filter-chip active" data-filter="SCHEDULED" id="filter-scheduled">Programados</button>
+                    <button class="filter-chip" data-filter="LIVE" id="filter-live">En Vivo 🔴</button>
+                    <button class="filter-chip" data-filter="FINISHED" id="filter-finished">Finalizados</button>
+                    <button class="filter-chip" data-filter="ALL" id="filter-all">Todos</button>
+                </div>
+            </div>
+            <div id="matches-container" class="matches-grid">
+                <div class="loading-state">
+                    <div class="loader"></div>
+                    <p>Cargando partidos...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Standings Tab -->
+        <section id="tab-standings" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title">Clasificación por Grupos</h2>
+            </div>
+            <div id="standings-container" class="standings-grid">
+                <div class="loading-state">
+                    <div class="loader"></div>
+                    <p>Cargando clasificación...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Knockout Tab -->
+        <section id="tab-knockout" class="tab-content">
+            <div class="section-header">
+                <h2 class="section-title">Fases Finales</h2>
+            </div>
+            <div id="knockout-container" class="knockout-bracket">
+                <div class="loading-state">
+                    <div class="loader"></div>
+                    <p>Cargando fases finales...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Datos proporcionados por <a href="https://www.football-data.org" target="_blank" rel="noopener">football-data.org</a></p>
+        <p class="footer-update">Última actualización: <span id="last-update">—</span></p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
