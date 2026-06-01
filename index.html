@@ -11,7 +11,24 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Favicons -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
+    <script>
+        // Generar Apple Touch Icon (PNG) dinámicamente para iOS
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 180; canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#0f172a'; // Color de fondo (oscuro)
+            ctx.fillRect(0, 0, 180, 180);
+            ctx.font = '110px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🏆', 90, 100);
+            const link = document.createElement('link');
+            link.rel = 'apple-touch-icon';
+            link.href = canvas.toDataURL('image/png');
+            document.head.appendChild(link);
+        });
+    </script>
 </head>
 <body>
     <!-- Animated Background -->
