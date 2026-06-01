@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "node build.js"
+  },
   "dependencies": {
     "dotenv": "^17.4.2"
   }
