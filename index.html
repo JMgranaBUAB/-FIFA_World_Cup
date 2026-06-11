@@ -134,6 +134,162 @@
         </section>
     </main>
 
+    <!-- Match Detail Modal -->
+    <div id="match-modal" class="modal-overlay">
+        <div class="modal-container">
+            <button class="modal-close" id="modal-close-btn" aria-label="Cerrar modal">&times;</button>
+            
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-meta-top">
+                    <span id="modal-match-stage" class="match-stage">—</span>
+                    <span id="modal-match-group" class="match-group-label"></span>
+                </div>
+                
+                <div class="modal-score-board">
+                    <div class="modal-team home">
+                        <div id="modal-home-crest-container"></div>
+                        <span id="modal-home-name" class="modal-team-name">—</span>
+                    </div>
+                    
+                    <div class="modal-score-display">
+                        <div class="modal-score-numbers">
+                            <span id="modal-home-score" class="modal-score-num">—</span>
+                            <span class="modal-score-dash">:</span>
+                            <span id="modal-away-score" class="modal-score-num">—</span>
+                        </div>
+                        <div id="modal-match-status" class="modal-status-badge">—</div>
+                    </div>
+                    
+                    <div class="modal-team away">
+                        <div id="modal-away-crest-container"></div>
+                        <span id="modal-away-name" class="modal-team-name">—</span>
+                    </div>
+                </div>
+                
+                <div class="modal-meta-bottom">
+                    <span id="modal-match-date"></span>
+                    <span id="modal-match-venue"></span>
+                </div>
+            </div>
+            
+            <!-- Modal Navigation Tabs -->
+            <div class="modal-tabs">
+                <button class="modal-tab-btn active" data-modal-tab="info">Ficha Técnica</button>
+                <button class="modal-tab-btn" data-modal-tab="lineups">Alineaciones</button>
+                <button class="modal-tab-btn" data-modal-tab="events">Goles y Narración</button>
+            </div>
+            
+            <!-- Modal Content Panels -->
+            <div class="modal-content">
+                <!-- Panel 1: Info & H2H -->
+                <div class="modal-panel active" id="modal-panel-info">
+                    <div class="info-section">
+                        <h3>Detalles del Encuentro</h3>
+                        <ul class="info-details-list">
+                            <li><span class="info-label">Árbitro:</span> <span id="modal-referee">—</span></li>
+                            <li><span class="info-label">Competición:</span> <span id="modal-competition">—</span></li>
+                            <li><span class="info-label">Temporada:</span> <span id="modal-season">—</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="h2h-section">
+                        <h3>Historial Cara a Cara (H2H)</h3>
+                        <div id="h2h-loader" class="panel-loader hidden">
+                            <div class="loader-sm"></div>
+                        </div>
+                        <div id="h2h-content">
+                            <div class="h2h-stats-summary">
+                                <div class="h2h-stat-box">
+                                    <span class="h2h-stat-val" id="h2h-total-matches">0</span>
+                                    <span class="h2h-stat-lbl">Partidos</span>
+                                </div>
+                                <div class="h2h-stat-box">
+                                    <span class="h2h-stat-val" id="h2h-total-goals">0</span>
+                                    <span class="h2h-stat-lbl">Goles Totales</span>
+                                </div>
+                            </div>
+                            
+                            <div class="h2h-bars">
+                                <div class="h2h-bar-container">
+                                    <div class="h2h-bar-labels">
+                                        <span id="h2h-home-team-lbl">Local</span>
+                                        <span class="h2h-draw-lbl">Empates</span>
+                                        <span id="h2h-away-team-lbl">Visitante</span>
+                                    </div>
+                                    <div class="h2h-percentage-bar">
+                                        <div id="h2h-home-win-bar" class="h2h-bar-segment home-wins" style="width: 33%"></div>
+                                        <div id="h2h-draw-bar" class="h2h-bar-segment draws" style="width: 34%"></div>
+                                        <div id="h2h-away-win-bar" class="h2h-bar-segment away-wins" style="width: 33%"></div>
+                                    </div>
+                                    <div class="h2h-bar-values">
+                                        <span id="h2h-home-wins-val">0</span>
+                                        <span id="h2h-draws-val">0</span>
+                                        <span id="h2h-away-wins-val">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 2: Lineups -->
+                <div class="modal-panel" id="modal-panel-lineups">
+                    <div class="lineups-view">
+                        <!-- Mini Football Pitch -->
+                        <div class="pitch-container">
+                            <div class="pitch">
+                                <div class="pitch-center-circle"></div>
+                                <div class="pitch-half-line"></div>
+                                <div class="pitch-penalty-area home"></div>
+                                <div class="pitch-penalty-area away"></div>
+                                
+                                <!-- Players on the pitch -->
+                                <div id="pitch-players-home" class="pitch-team-players"></div>
+                                <div id="pitch-players-away" class="pitch-team-players"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lineups Lists (Fallback / Detailed) -->
+                        <div class="lineups-lists">
+                            <div class="lineup-team-list">
+                                <h4 id="lineup-home-title">Local</h4>
+                                <div class="formation-badge" id="lineup-home-formation">4-3-3</div>
+                                <ul class="players-ul" id="lineup-home-players"></ul>
+                                <div class="coach-info">D.T.: <span id="lineup-home-coach">—</span></div>
+                            </div>
+                            <div class="lineup-team-list">
+                                <h4 id="lineup-away-title">Visitante</h4>
+                                <div class="formation-badge" id="lineup-away-formation">4-3-3</div>
+                                <ul class="players-ul" id="lineup-away-players"></ul>
+                                <div class="coach-info">D.T.: <span id="lineup-away-coach">—</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 3: Events & Commentary -->
+                <div class="modal-panel" id="modal-panel-events">
+                    <div class="events-view">
+                        <!-- Goals summary -->
+                        <div class="goals-timeline-summary">
+                            <div class="team-goals-col" id="modal-home-goals-list"></div>
+                            <div class="timeline-ball-icon">⚽</div>
+                            <div class="team-goals-col" id="modal-away-goals-list"></div>
+                        </div>
+                        
+                        <div class="timeline-section">
+                            <h3>Narración en Vivo</h3>
+                            <div class="timeline-container" id="match-commentary-timeline">
+                                <!-- Comment entries here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 

@@ -63,6 +63,10 @@ class FootballAPI {
     getScorers(params = {}) {
         return this.fetch(`/competitions/${CONFIG.COMPETITION_CODE}/scorers`, params);
     }
+
+    getMatchHeadToHead(matchId) {
+        return this.fetch(`/matches/${matchId}/head2head`);
+    }
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -136,6 +140,463 @@ function getStageOrder(stage) {
     return order[stage] ?? 99;
 }
 
+// ========== SIMULATOR DATA AND GENERATORS ==========
+const PRESET_TEAMS = {
+    "mexico": {
+        formation: "4-3-3",
+        coach: "Javier Aguirre",
+        players: [
+            { name: "Guillermo Ochoa", surname: "Ochoa", number: 13, pos: "GK" },
+            { name: "César Montes", surname: "Montes", number: 3, pos: "DF" },
+            { name: "Johan Vásquez", surname: "Vásquez", number: 5, pos: "DF" },
+            { name: "Jorge Sánchez", surname: "Sánchez", number: 19, pos: "DF" },
+            { name: "Jesús Gallardo", surname: "Gallardo", number: 23, pos: "DF" },
+            { name: "Edson Álvarez", surname: "Álvarez", number: 4, pos: "MF" },
+            { name: "Luis Chávez", surname: "Chávez", number: 24, pos: "MF" },
+            { name: "Luis Romo", surname: "Romo", number: 7, pos: "MF" },
+            { name: "Hirving Lozano", surname: "Lozano", number: 22, pos: "FW" },
+            { name: "Santiago Giménez", surname: "Giménez", number: 11, pos: "FW" },
+            { name: "Alexis Vega", surname: "Vega", number: 10, pos: "FW" }
+        ],
+        subs: [
+            { name: "Luis Malagón", number: 1, pos: "GK" },
+            { name: "Néstor Araujo", number: 2, pos: "DF" },
+            { name: "Orbelín Pineda", number: 17, pos: "MF" },
+            { name: "Uriel Antuna", number: 15, pos: "FW" },
+            { name: "Henry Martín", number: 9, pos: "FW" }
+        ]
+    },
+    "south africa": {
+        formation: "4-3-3",
+        coach: "Hugo Broos",
+        players: [
+            { name: "Ronwen Williams", surname: "Williams", number: 1, pos: "GK" },
+            { name: "Khuliso Mudau", surname: "Mudau", number: 2, pos: "DF" },
+            { name: "Grant Kekana", surname: "Kekana", number: 18, pos: "DF" },
+            { name: "Mothobi Mvala", surname: "Mvala", number: 20, pos: "DF" },
+            { name: "Aubrey Modiba", surname: "Modiba", number: 6, pos: "DF" },
+            { name: "Teboho Mokoena", surname: "Mokoena", number: 4, pos: "MF" },
+            { name: "Sphephelo Sithole", surname: "Sithole", number: 13, pos: "MF" },
+            { name: "Themba Zwane", surname: "Zwane", number: 11, pos: "MF" },
+            { name: "Thapelo Morena", surname: "Morena", number: 23, pos: "FW" },
+            { name: "Percy Tau", surname: "Tau", number: 10, pos: "FW" },
+            { name: "Thapelo Maseko", surname: "Maseko", number: 7, pos: "FW" }
+        ],
+        subs: [
+            { name: "Ricardo Goss", number: 16, pos: "GK" },
+            { name: "Nkosinathi Sibisi", number: 5, pos: "DF" },
+            { name: "Thabang Monare", number: 15, pos: "MF" },
+            { name: "Terrence Mashego", number: 12, pos: "DF" },
+            { name: "Zakhele Lepasa", number: 9, pos: "FW" }
+        ]
+    },
+    "united states": {
+        formation: "4-3-3",
+        coach: "Mauricio Pochettino",
+        players: [
+            { name: "Matt Turner", surname: "Turner", number: 1, pos: "GK" },
+            { name: "Sergiño Dest", surname: "Dest", number: 2, pos: "DF" },
+            { name: "Chris Richards", surname: "Richards", number: 3, pos: "DF" },
+            { name: "Tim Ream", surname: "Ream", number: 13, pos: "DF" },
+            { name: "Antonee Robinson", surname: "Robinson", number: 5, pos: "DF" },
+            { name: "Weston McKennie", surname: "McKennie", number: 8, pos: "MF" },
+            { name: "Tyler Adams", surname: "Adams", number: 4, pos: "MF" },
+            { name: "Yunus Musah", surname: "Musah", number: 6, pos: "MF" },
+            { name: "Timothy Weah", surname: "Weah", number: 21, pos: "FW" },
+            { name: "Folarin Balogun", surname: "Balogun", number: 20, pos: "FW" },
+            { name: "Christian Pulisic", surname: "Pulisic", number: 10, pos: "FW" }
+        ],
+        subs: [
+            { name: "Ethan Horvath", number: 18, pos: "GK" },
+            { name: "Cameron Carter-Vickers", number: 4, pos: "DF" },
+            { name: "Gio Reyna", number: 7, pos: "MF" },
+            { name: "Johnny Cardoso", number: 15, pos: "MF" },
+            { name: "Ricardo Pepi", number: 9, pos: "FW" }
+        ]
+    },
+    "argentina": {
+        formation: "4-3-3",
+        coach: "Lionel Scaloni",
+        players: [
+            { name: "Emiliano Martínez", surname: "Martínez", number: 23, pos: "GK" },
+            { name: "Nahuel Molina", surname: "Molina", number: 26, pos: "DF" },
+            { name: "Cristian Romero", surname: "Romero", number: 13, pos: "DF" },
+            { name: "Nicolás Otamendi", surname: "Otamendi", number: 19, pos: "DF" },
+            { name: "Nicolás Tagliafico", surname: "Tagliafico", number: 3, pos: "DF" },
+            { name: "Rodrigo De Paul", surname: "De Paul", number: 7, pos: "MF" },
+            { name: "Enzo Fernández", surname: "Fernández", number: 24, pos: "MF" },
+            { name: "Alexis Mac Allister", surname: "Mac Allister", number: 20, pos: "MF" },
+            { name: "Lionel Messi", surname: "Messi", number: 10, pos: "FW" },
+            { name: "Lautaro Martínez", surname: "Martínez", number: 22, pos: "FW" },
+            { name: "Ángel Di María", surname: "Di María", number: 11, pos: "FW" }
+        ],
+        subs: [
+            { name: "Franco Armani", number: 1, pos: "GK" },
+            { name: "Lisandro Martínez", number: 25, pos: "DF" },
+            { name: "Leandro Paredes", number: 5, pos: "MF" },
+            { name: "Giovani Lo Celso", number: 16, pos: "MF" },
+            { name: "Julián Álvarez", number: 9, pos: "FW" }
+        ]
+    },
+    "spain": {
+        formation: "4-3-3",
+        coach: "Luis de la Fuente",
+        players: [
+            { name: "David Raya", surname: "Raya", number: 1, pos: "GK" },
+            { name: "Dani Carvajal", surname: "Carvajal", number: 2, pos: "DF" },
+            { name: "Robin Le Normand", surname: "Le Normand", number: 3, pos: "DF" },
+            { name: "Aymeric Laporte", surname: "Laporte", number: 14, pos: "DF" },
+            { name: "Marc Cucurella", surname: "Cucurella", number: 24, pos: "DF" },
+            { name: "Rodri", surname: "Rodri", number: 16, pos: "MF" },
+            { name: "Fabián Ruiz", surname: "Ruiz", number: 8, pos: "MF" },
+            { name: "Pedri", surname: "Pedri", number: 20, pos: "MF" },
+            { name: "Lamine Yamal", surname: "Yamal", number: 19, pos: "FW" },
+            { name: "Álvaro Morata", surname: "Morata", number: 7, pos: "FW" },
+            { name: "Nico Williams", surname: "Williams", number: 17, pos: "FW" }
+        ],
+        subs: [
+            { name: "Álex Remiro", number: 13, pos: "GK" },
+            { name: "Dani Vivian", number: 5, pos: "DF" },
+            { name: "Alejandro Grimaldo", number: 12, pos: "DF" },
+            { name: "Martín Zubimendi", number: 18, pos: "MF" },
+            { name: "Dani Olmo", number: 10, pos: "MF" }
+        ]
+    },
+    "france": {
+        formation: "4-3-3",
+        coach: "Didier Deschamps",
+        players: [
+            { name: "Mike Maignan", surname: "Maignan", number: 16, pos: "GK" },
+            { name: "Jules Koundé", surname: "Koundé", number: 5, pos: "DF" },
+            { name: "Dayot Upamecano", surname: "Upamecano", number: 4, pos: "DF" },
+            { name: "William Saliba", surname: "Saliba", number: 17, pos: "DF" },
+            { name: "Théo Hernández", surname: "Hernández", number: 22, pos: "DF" },
+            { name: "N'Golo Kanté", surname: "Kanté", number: 13, pos: "MF" },
+            { name: "Aurélien Tchouaméni", surname: "Tchouaméni", number: 8, pos: "MF" },
+            { name: "Adrien Rabiot", surname: "Rabiot", number: 14, pos: "MF" },
+            { name: "Ousmane Dembélé", surname: "Dembélé", number: 11, pos: "FW" },
+            { name: "Kylian Mbappé", surname: "Mbappé", number: 10, pos: "FW" },
+            { name: "Antoine Griezmann", surname: "Griezmann", number: 7, pos: "FW" }
+        ],
+        subs: [
+            { name: "Alphonse Areola", number: 23, pos: "GK" },
+            { name: "Benjamin Pavard", number: 2, pos: "DF" },
+            { name: "Youssouf Fofana", number: 19, pos: "MF" },
+            { name: "Eduardo Camavinga", number: 6, pos: "MF" },
+            { name: "Olivier Giroud", number: 9, pos: "FW" }
+        ]
+    },
+    "germany": {
+        formation: "4-3-3",
+        coach: "Julian Nagelsmann",
+        players: [
+            { name: "Manuel Neuer", surname: "Neuer", number: 1, pos: "GK" },
+            { name: "Joshua Kimmich", surname: "Kimmich", number: 6, pos: "DF" },
+            { name: "Antonio Rüdiger", surname: "Rüdiger", number: 2, pos: "DF" },
+            { name: "Jonathan Tah", surname: "Tah", number: 4, pos: "DF" },
+            { name: "Maximilian Mittelstädt", surname: "Mittelstädt", number: 22, pos: "DF" },
+            { name: "Robert Andrich", surname: "Andrich", number: 23, pos: "MF" },
+            { name: "Toni Kroos", surname: "Kroos", number: 8, pos: "MF" },
+            { name: "İlkay Gündoğan", surname: "Gündoğan", number: 21, pos: "MF" },
+            { name: "Jamal Musiala", surname: "Musiala", number: 10, pos: "FW" },
+            { name: "Kai Havertz", surname: "Havertz", number: 7, pos: "FW" },
+            { name: "Florian Wirtz", surname: "Wirtz", number: 17, pos: "FW" }
+        ],
+        subs: [
+            { name: "Marc-André ter Stegen", number: 12, pos: "GK" },
+            { name: "Nico Schlotterbeck", number: 15, pos: "DF" },
+            { name: "Pascal Groß", number: 5, pos: "MF" },
+            { name: "Leroy Sané", number: 19, pos: "FW" },
+            { name: "Niclas Füllkrug", number: 9, pos: "FW" }
+        ]
+    },
+    "brazil": {
+        formation: "4-3-3",
+        coach: "Dorival Júnior",
+        players: [
+            { name: "Alisson Becker", surname: "Alisson", number: 1, pos: "GK" },
+            { name: "Danilo Luiz", surname: "Danilo", number: 2, pos: "DF" },
+            { name: "Marquinhos Aoás", surname: "Marquinhos", number: 3, pos: "DF" },
+            { name: "Gabriel Magalhães", surname: "Gabriel", number: 4, pos: "DF" },
+            { name: "Guilherme Arana", surname: "Arana", number: 6, pos: "DF" },
+            { name: "Bruno Guimarães", surname: "Guimarães", number: 5, pos: "MF" },
+            { name: "João Gomes", surname: "Gomes", number: 15, pos: "MF" },
+            { name: "Lucas Paquetá", surname: "Paquetá", number: 8, pos: "MF" },
+            { name: "Raphinha Dias", surname: "Raphinha", number: 11, pos: "FW" },
+            { name: "Rodrygo Goes", surname: "Rodrygo", number: 10, pos: "FW" },
+            { name: "Vinícius Júnior", surname: "Vinícius", number: 7, pos: "FW" }
+        ],
+        subs: [
+            { name: "Bento Matheus", number: 12, pos: "GK" },
+            { name: "Éder Militão", number: 14, pos: "DF" },
+            { name: "Douglas Luiz", number: 18, pos: "MF" },
+            { name: "Andreas Pereira", number: 19, pos: "MF" },
+            { name: "Endrick Felipe", number: 9, pos: "FW" }
+        ]
+    }
+};
+
+const PITCH_POSITIONS = {
+    home: [
+        { role: 'GK', x: 50, y: 8 },
+        { role: 'DF', x: 15, y: 20 },
+        { role: 'DF', x: 38, y: 18 },
+        { role: 'DF', x: 62, y: 18 },
+        { role: 'DF', x: 85, y: 20 },
+        { role: 'MF', x: 25, y: 32 },
+        { role: 'MF', x: 50, y: 30 },
+        { role: 'MF', x: 75, y: 32 },
+        { role: 'FW', x: 20, y: 44 },
+        { role: 'FW', x: 50, y: 46 },
+        { role: 'FW', x: 80, y: 44 }
+    ],
+    away: [
+        { role: 'GK', x: 50, y: 92 },
+        { role: 'DF', x: 15, y: 80 },
+        { role: 'DF', x: 38, y: 82 },
+        { role: 'DF', x: 62, y: 82 },
+        { role: 'DF', x: 85, y: 80 },
+        { role: 'MF', x: 25, y: 68 },
+        { role: 'MF', x: 50, y: 70 },
+        { role: 'MF', x: 75, y: 68 },
+        { role: 'FW', x: 20, y: 56 },
+        { role: 'FW', x: 50, y: 54 },
+        { role: 'FW', x: 80, y: 56 }
+    ]
+};
+
+function seededRandom(seed) {
+    let x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+function generateRoster(teamName, isHome, matchId) {
+    const key = teamName.toLowerCase().trim();
+    const preset = PRESET_TEAMS[key];
+    if (preset) {
+        return JSON.parse(JSON.stringify(preset));
+    }
+
+    let seed = 0;
+    for (let char of key) seed += char.charCodeAt(0);
+    seed += matchId;
+
+    const positions = ['GK', 'DF', 'DF', 'DF', 'DF', 'MF', 'MF', 'MF', 'FW', 'FW', 'FW'];
+    const regionNames = {
+        first: ["James", "Lucas", "Mateo", "Thomas", "Daniel", "David", "Gabriel", "Luka", "Alexander", "Marc", "Oliver", "Antoine", "Luis", "Nicolas", "Jan", "Erik", "Ivan", "Kenji", "Sadio"],
+        last: ["Silva", "García", "Fernández", "Smith", "Jones", "Williams", "Müller", "Schneider", "Dubois", "Martin", "Rossi", "Bianchi", "Kovac", "Subasic", "Hansen", "Nielsen", "Takahashi", "Sissoko"]
+    };
+
+    const players = [];
+    for (let i = 0; i < 11; i++) {
+        const r1 = Math.floor(seededRandom(seed + i) * regionNames.first.length);
+        const r2 = Math.floor(seededRandom(seed + i + 25) * regionNames.last.length);
+        const number = i === 0 ? 1 : Math.floor(seededRandom(seed + i + 50) * 22) + 2;
+        
+        players.push({
+            name: `${regionNames.first[r1]} ${regionNames.last[r2]}`,
+            surname: regionNames.last[r2],
+            number: number,
+            pos: positions[i]
+        });
+    }
+
+    const subs = [];
+    for (let i = 0; i < 5; i++) {
+        const r1 = Math.floor(seededRandom(seed + i + 100) * regionNames.first.length);
+        const r2 = Math.floor(seededRandom(seed + i + 130) * regionNames.last.length);
+        subs.push({
+            name: `${regionNames.first[r1]} ${regionNames.last[r2]}`,
+            number: Math.floor(seededRandom(seed + i + 160) * 70) + 24,
+            pos: positions[(i + 1) % positions.length]
+        });
+    }
+
+    const coachIndex = Math.floor(seededRandom(seed + 200) * regionNames.first.length);
+    const coachLastIndex = Math.floor(seededRandom(seed + 230) * regionNames.last.length);
+    const coach = `${regionNames.first[coachIndex]} ${regionNames.last[coachLastIndex]}`;
+
+    return {
+        formation: "4-3-3",
+        coach,
+        players,
+        subs
+    };
+}
+
+function generateGoals(match, homeRoster, awayRoster) {
+    const isFinished = match.status === 'FINISHED';
+    const isLive = ['IN_PLAY', 'PAUSED'].includes(match.status);
+    
+    if (!isFinished && !isLive) return { homeGoals: [], awayGoals: [] };
+    
+    const homeScore = match.score?.fullTime?.home ?? 0;
+    const awayScore = match.score?.fullTime?.away ?? 0;
+    
+    let seed = match.id;
+    const homeGoals = [];
+    const awayGoals = [];
+    
+    const allMinutes = [];
+    const totalGoals = homeScore + awayScore;
+    
+    while (allMinutes.length < totalGoals) {
+        const min = Math.floor(seededRandom(seed++) * 90) + 1;
+        if (!allMinutes.includes(min)) {
+            allMinutes.push(min);
+        }
+    }
+    allMinutes.sort((a, b) => a - b);
+    
+    let minIdx = 0;
+    
+    for (let i = 0; i < homeScore; i++) {
+        const candidates = homeRoster.players.filter(p => p.pos !== 'GK');
+        const scorerIdx = Math.floor(seededRandom(seed++) * candidates.length);
+        const scorer = candidates[scorerIdx] || { name: 'Jugador', surname: 'Local' };
+        
+        homeGoals.push({
+            scorer: scorer.name,
+            surname: scorer.surname,
+            minute: allMinutes[minIdx++] || 45
+        });
+    }
+    
+    for (let i = 0; i < awayScore; i++) {
+        const candidates = awayRoster.players.filter(p => p.pos !== 'GK');
+        const scorerIdx = Math.floor(seededRandom(seed++) * candidates.length);
+        const scorer = candidates[scorerIdx] || { name: 'Jugador', surname: 'Visitante' };
+        
+        awayGoals.push({
+            scorer: scorer.name,
+            surname: scorer.surname,
+            minute: allMinutes[minIdx++] || 45
+        });
+    }
+    
+    homeGoals.sort((a, b) => a.minute - b.minute);
+    awayGoals.sort((a, b) => a.minute - b.minute);
+    
+    return { homeGoals, awayGoals };
+}
+
+function generateCommentary(match, homeRoster, awayRoster, homeGoals, awayGoals) {
+    const isFinished = match.status === 'FINISHED';
+    const isLive = ['IN_PLAY', 'PAUSED'].includes(match.status);
+    const homeTeamName = match.homeTeam?.shortName || match.homeTeam?.name || 'Local';
+    const awayTeamName = match.awayTeam?.shortName || match.awayTeam?.name || 'Visitante';
+    
+    if (!isFinished && !isLive) {
+        return [
+            { time: 'Pre-Match', type: 'info', text: 'Los equipos están listos para el partido inaugural en el estadio. El ambiente es espectacular.' },
+            { time: 'Pre-Match', type: 'info', text: `Se espera un planteamiento táctico cerrado. El D.T. de ${homeTeamName} saldrá a buscar el control del balón.` },
+            { time: 'Pre-Match', type: 'info', text: `Último análisis: El historial cara a cara muestra una gran paridad y emoción en sus partidos pasados.` },
+            { time: 'Pre-Match', type: 'info', text: 'Los jugadores saltan al terreno de juego para realizar los calentamientos de rigor.' }
+        ];
+    }
+    
+    const timeline = [];
+    let seed = match.id + 500;
+    
+    timeline.push({
+        time: "1'",
+        type: 'info',
+        text: `¡Comienza el partido! Rueda el balón en el campo entre ${homeTeamName} y ${awayTeamName}.`
+    });
+    
+    homeGoals.forEach(g => {
+        timeline.push({
+            time: `${g.minute}'`,
+            type: 'goal',
+            text: `⚽ ¡GOOOOOOL de ${homeTeamName}! ${g.scorer} define de manera impecable ante la salida del arquero.`
+        });
+    });
+    
+    awayGoals.forEach(g => {
+        timeline.push({
+            time: `${g.minute}'`,
+            type: 'goal',
+            text: `⚽ ¡GOOOOOOL de ${awayTeamName}! ${g.scorer} saca un derechazo potente que estremece las redes.`
+        });
+    });
+    
+    const totalYellows = Math.floor(seededRandom(seed++) * 4) + 1;
+    for (let i = 0; i < totalYellows; i++) {
+        const isHome = seededRandom(seed++) > 0.5;
+        const roster = isHome ? homeRoster : awayRoster;
+        const teamName = isHome ? homeTeamName : awayTeamName;
+        const candidates = roster.players.filter(p => p.pos !== 'GK');
+        const pIdx = Math.floor(seededRandom(seed++) * candidates.length);
+        const player = candidates[pIdx] || { name: 'Jugador' };
+        const min = Math.floor(seededRandom(seed++) * 88) + 2;
+        
+        timeline.push({
+            time: `${min}'`,
+            type: 'card-yellow',
+            text: `🟨 Tarjeta Amarilla para ${player.name} de ${teamName} por una falta temeraria.`
+        });
+    }
+    
+    timeline.push({
+        time: "45'",
+        type: 'info',
+        text: '⏸ Final del primer tiempo. Los equipos se retiran a los vestuarios.'
+    });
+    timeline.push({
+        time: "46'",
+        type: 'info',
+        text: '⚽ Arranca la segunda mitad. Veremos si hay modificaciones tácticas.'
+    });
+    
+    const totalSubs = Math.floor(seededRandom(seed++) * 3) + 1;
+    for (let i = 0; i < totalSubs; i++) {
+        const isHome = seededRandom(seed++) > 0.5;
+        const roster = isHome ? homeRoster : awayRoster;
+        const teamName = isHome ? homeTeamName : awayTeamName;
+        
+        const startingPlayers = roster.players.filter(p => p.pos !== 'GK');
+        const pOutIdx = Math.floor(seededRandom(seed++) * startingPlayers.length);
+        const pOut = startingPlayers[pOutIdx] || { name: 'Jugador' };
+        
+        const pInIdx = Math.floor(seededRandom(seed++) * roster.subs.length);
+        const pIn = roster.subs[pInIdx] || { name: 'Jugador Suplente', number: 20 };
+        
+        const min = Math.floor(seededRandom(seed++) * 35) + 50;
+        
+        timeline.push({
+            time: `${min}'`,
+            type: 'info',
+            text: `🔄 Cambio en ${teamName}: Entra ${pIn.name} (#${pIn.number}) sustituyendo a ${pOut.name}.`
+        });
+    }
+    
+    const missedMin = Math.floor(seededRandom(seed++) * 40) + 48;
+    const missedTeam = seededRandom(seed++) > 0.5 ? homeTeamName : awayTeamName;
+    timeline.push({
+        time: `${missedMin}'`,
+        type: 'info',
+        text: `⚠️ ¡La tuvo! Remate peligroso de ${missedTeam} que pasa zumbando el poste izquierdo.`
+    });
+    
+    timeline.sort((a, b) => {
+        const getMin = (t) => {
+            if (t.startsWith('Pre')) return -1;
+            if (t === '45\'') return 45.1;
+            if (t === '46\'') return 45.2;
+            return parseInt(t.replace("'", ""));
+        };
+        return getMin(a.time) - getMin(b.time);
+    });
+    
+    timeline.push({
+        time: "90'",
+        type: 'info',
+        text: `🏁 ¡Final del partido! El árbitro decreta el final del encuentro. Marcador definitivo: ${homeTeamName} ${match.score?.fullTime?.home ?? 0} - ${match.score?.fullTime?.away ?? 0} ${awayTeamName}.`
+    });
+    
+    return timeline;
+}
+
 // ========== TOAST NOTIFICATIONS ==========
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -186,6 +647,45 @@ class WorldCupApp {
         // Refresh button
         document.getElementById('refresh-btn').addEventListener('click', () => {
             this.refreshData();
+        });
+
+        // Intercept clicks on matches to show detail modal
+        document.getElementById('matches-container').addEventListener('click', (e) => {
+            const card = e.target.closest('.match-card');
+            if (card && card.dataset.matchId) {
+                this.openMatchDetail(parseInt(card.dataset.matchId));
+            }
+        });
+
+        document.getElementById('knockout-container').addEventListener('click', (e) => {
+            const card = e.target.closest('.knockout-match');
+            if (card && card.dataset.matchId) {
+                this.openMatchDetail(parseInt(card.dataset.matchId));
+            }
+        });
+
+        // Modal close buttons
+        document.getElementById('modal-close-btn').addEventListener('click', () => {
+            this.closeMatchDetail();
+        });
+        document.getElementById('match-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'match-modal') {
+                this.closeMatchDetail();
+            }
+        });
+
+        // Modal tab buttons
+        document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.switchModalTab(btn.dataset.modalTab);
+            });
+        });
+
+        // ESC key to close modal
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeMatchDetail();
+            }
         });
     }
 
@@ -334,7 +834,7 @@ class WorldCupApp {
         const venue = match.venue ? `<div class="match-venue">📍 ${match.venue}</div>` : '';
 
         return `
-            <div class="match-card ${isLive ? 'live' : ''}" style="animation-delay: ${index * 60}ms">
+            <div class="match-card ${isLive ? 'live' : ''}" data-match-id="${match.id}" style="animation-delay: ${index * 60}ms">
                 <div class="match-meta">
                     <span class="match-stage">${stageName}</span>
                     <span class="match-status ${getStatusClass(match.status)}">${getStatusLabel(match.status)}</span>
@@ -550,7 +1050,7 @@ class WorldCupApp {
             : '';
 
         return `
-            <div class="knockout-match" style="animation-delay: ${index * 60}ms">
+            <div class="knockout-match" data-match-id="${match.id}" style="animation-delay: ${index * 60}ms">
                 <div class="knockout-match-date">${formatDateTime(match.utcDate)} · ${getStatusLabel(match.status)}</div>
                 <div class="knockout-team ${finalHomeWinner ? 'winner' : ''}">
                     <div class="knockout-team-info">
@@ -653,6 +1153,240 @@ class WorldCupApp {
                 <div class="error-state-detail">${detail}</div>
             </div>
         `;
+    }
+
+    async openMatchDetail(matchId) {
+        const modal = document.getElementById('match-modal');
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        this.switchModalTab('info');
+
+        document.getElementById('h2h-loader').classList.remove('hidden');
+        document.getElementById('h2h-content').style.opacity = '0.3';
+
+        const match = this.matchesData ? this.matchesData.find(m => m.id === matchId) : null;
+        if (!match) {
+            console.error('Partido no encontrado localmente');
+            return;
+        }
+
+        this.renderMatchHeader(match);
+
+        let h2hData = null;
+        try {
+            h2hData = await this.api.getMatchHeadToHead(matchId);
+        } catch (error) {
+            console.error('Error cargando estadísticas H2H:', error);
+        }
+
+        this.renderMatchDetail(match, h2hData);
+    }
+
+    closeMatchDetail() {
+        const modal = document.getElementById('match-modal');
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    switchModalTab(tab) {
+        document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.modalTab === tab);
+        });
+        document.querySelectorAll('.modal-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.id === `modal-panel-${tab}`);
+        });
+    }
+
+    renderMatchHeader(match) {
+        const homeScore = match.score?.fullTime?.home;
+        const awayScore = match.score?.fullTime?.away;
+        const hasScore = homeScore !== null && homeScore !== undefined;
+
+        document.getElementById('modal-match-stage').textContent = 
+            match.stage === 'GROUP_STAGE' && match.group
+                ? `Grupo ${match.group.replace('GROUP_', '')}`
+                : getStageName(match.stage);
+
+        document.getElementById('modal-match-group').textContent = 
+            match.stage === 'GROUP_STAGE' ? 'Fase de Grupos' : 'Fase de Eliminatoria';
+
+        const homeCrest = match.homeTeam?.crest
+            ? `<img class="team-crest" src="${match.homeTeam.crest}" alt="" onerror="this.outerHTML='<div class=\\'team-crest-placeholder\\'>🏳️</div>'">`
+            : `<div class="team-crest-placeholder">🏳️</div>`;
+        const awayCrest = match.awayTeam?.crest
+            ? `<img class="team-crest" src="${match.awayTeam.crest}" alt="" onerror="this.outerHTML='<div class=\\'team-crest-placeholder\\'>🏳️</div>'">`
+            : `<div class="team-crest-placeholder">🏳️</div>`;
+
+        document.getElementById('modal-home-crest-container').innerHTML = homeCrest;
+        document.getElementById('modal-away-crest-container').innerHTML = awayCrest;
+
+        document.getElementById('modal-home-name').textContent = match.homeTeam?.shortName || match.homeTeam?.name || 'TBD';
+        document.getElementById('modal-away-name').textContent = match.awayTeam?.shortName || match.awayTeam?.name || 'TBD';
+
+        document.getElementById('modal-home-score').textContent = hasScore ? homeScore : '—';
+        document.getElementById('modal-away-score').textContent = hasScore ? awayScore : '—';
+
+        const statusBadge = document.getElementById('modal-match-status');
+        statusBadge.textContent = getStatusLabel(match.status);
+        statusBadge.className = `modal-status-badge ${getStatusClass(match.status)}`;
+
+        document.getElementById('modal-match-date').textContent = `📅 ${formatDateTime(match.utcDate)}`;
+        document.getElementById('modal-match-venue').textContent = match.venue ? `📍 ${match.venue}` : '📍 Por definir';
+    }
+
+    renderMatchDetail(match, h2h) {
+        const referee = match.referees && match.referees.length > 0
+            ? match.referees.map(r => `${r.name} (${r.nationality || '—'})`).join(', ')
+            : 'Por designar';
+
+        document.getElementById('modal-referee').textContent = referee;
+        document.getElementById('modal-competition').textContent = match.competition?.name || 'FIFA World Cup';
+        document.getElementById('modal-season').textContent = match.season 
+            ? `${new Date(match.season.startDate).getFullYear()} (EE.UU. / México / Canadá)` 
+            : '2026';
+
+        const loader = document.getElementById('h2h-loader');
+        const content = document.getElementById('h2h-content');
+        
+        loader.classList.add('hidden');
+        content.style.opacity = '1';
+
+        if (h2h && h2h.aggregates) {
+            const aggr = h2h.aggregates;
+            document.getElementById('h2h-total-matches').textContent = aggr.numberOfMatches || '0';
+            document.getElementById('h2h-total-goals').textContent = aggr.totalGoals || '0';
+
+            const homeWins = aggr.homeTeam?.wins || 0;
+            const awayWins = aggr.awayTeam?.wins || 0;
+            const totalMatches = aggr.numberOfMatches || 1;
+            const draws = Math.max(0, totalMatches - homeWins - awayWins);
+
+            document.getElementById('h2h-home-wins-val').textContent = `${homeWins} Victorias`;
+            document.getElementById('h2h-draws-val').textContent = `${draws} Empates`;
+            document.getElementById('h2h-away-wins-val').textContent = `${awayWins} Victorias`;
+
+            document.getElementById('h2h-home-team-lbl').textContent = match.homeTeam?.shortName || 'Local';
+            document.getElementById('h2h-away-team-lbl').textContent = match.awayTeam?.shortName || 'Visitante';
+
+            const homePct = (homeWins / totalMatches) * 100;
+            const drawPct = (draws / totalMatches) * 100;
+            const awayPct = (awayWins / totalMatches) * 100;
+
+            document.getElementById('h2h-home-win-bar').style.width = `${homePct}%`;
+            document.getElementById('h2h-draw-bar').style.width = `${drawPct}%`;
+            document.getElementById('h2h-away-win-bar').style.width = `${awayPct}%`;
+        } else {
+            document.getElementById('h2h-total-matches').textContent = '—';
+            document.getElementById('h2h-total-goals').textContent = '—';
+            document.getElementById('h2h-home-wins-val').textContent = '—';
+            document.getElementById('h2h-draws-val').textContent = '—';
+            document.getElementById('h2h-away-wins-val').textContent = '—';
+
+            document.getElementById('h2h-home-win-bar').style.width = `33%`;
+            document.getElementById('h2h-draw-bar').style.width = `34%`;
+            document.getElementById('h2h-away-win-bar').style.width = `33%`;
+        }
+
+        const homeRoster = generateRoster(match.homeTeam?.name || 'Local', true, match.id);
+        const awayRoster = generateRoster(match.awayTeam?.name || 'Visitante', false, match.id);
+
+        this.renderDetailLineups(match, homeRoster, awayRoster);
+
+        const { homeGoals, awayGoals } = generateGoals(match, homeRoster, awayRoster);
+        this.renderDetailTimeline(match, homeRoster, awayRoster, homeGoals, awayGoals);
+    }
+
+    renderDetailLineups(match, homeRoster, awayRoster) {
+        document.getElementById('lineup-home-title').textContent = match.homeTeam?.shortName || match.homeTeam?.name || 'Local';
+        document.getElementById('lineup-away-title').textContent = match.awayTeam?.shortName || match.awayTeam?.name || 'Visitante';
+
+        document.getElementById('lineup-home-formation').textContent = homeRoster.formation || '4-3-3';
+        document.getElementById('lineup-away-formation').textContent = awayRoster.formation || '4-3-3';
+
+        document.getElementById('lineup-home-coach').textContent = homeRoster.coach || '—';
+        document.getElementById('lineup-away-coach').textContent = awayRoster.coach || '—';
+
+        const formatPlayerLi = (p) => `
+            <li>
+                <div>
+                    <span class="player-number">${p.number}</span>
+                    <span class="player-fullname">${p.name}</span>
+                </div>
+                <span class="player-position">${p.pos}</span>
+            </li>
+        `;
+
+        document.getElementById('lineup-home-players').innerHTML = 
+            homeRoster.players.map(formatPlayerLi).join('');
+        document.getElementById('lineup-away-players').innerHTML = 
+            awayRoster.players.map(formatPlayerLi).join('');
+
+        const pitchHome = document.getElementById('pitch-players-home');
+        const pitchAway = document.getElementById('pitch-players-away');
+        pitchHome.innerHTML = '';
+        pitchAway.innerHTML = '';
+
+        homeRoster.players.forEach((p, index) => {
+            const coord = PITCH_POSITIONS.home[index] || { x: 50, y: 50 };
+            const node = document.createElement('div');
+            node.className = 'pitch-player';
+            node.style.left = `${coord.x}%`;
+            node.style.top = `${coord.y}%`;
+            node.innerHTML = `
+                <div class="player-jersey">${p.number}</div>
+                <div class="player-surname">${p.surname || p.name.split(' ').pop()}</div>
+            `;
+            pitchHome.appendChild(node);
+        });
+
+        awayRoster.players.forEach((p, index) => {
+            const coord = PITCH_POSITIONS.away[index] || { x: 50, y: 50 };
+            const node = document.createElement('div');
+            node.className = 'pitch-player';
+            node.style.left = `${coord.x}%`;
+            node.style.top = `${coord.y}%`;
+            node.innerHTML = `
+                <div class="player-jersey away-jersey">${p.number}</div>
+                <div class="player-surname">${p.surname || p.name.split(' ').pop()}</div>
+            `;
+            pitchAway.appendChild(node);
+        });
+    }
+
+    renderDetailTimeline(match, homeRoster, awayRoster, homeGoals, awayGoals) {
+        const homeList = document.getElementById('modal-home-goals-list');
+        const awayList = document.getElementById('modal-away-goals-list');
+
+        homeList.innerHTML = homeGoals.map(g => `
+            <div class="goal-event-item">⚽ <span>${g.surname} (${g.minute}')</span></div>
+        `).join('');
+
+        awayList.innerHTML = awayGoals.map(g => `
+            <div class="goal-event-item">⚽ <span>${g.surname} (${g.minute}')</span></div>
+        `).join('');
+
+        const timelineContainer = document.getElementById('match-commentary-timeline');
+        const comments = generateCommentary(match, homeRoster, awayRoster, homeGoals, awayGoals);
+
+        timelineContainer.innerHTML = comments.map(c => {
+            let badgeClass = 'info';
+            if (c.type === 'goal') badgeClass = 'goal';
+            else if (c.type === 'card-yellow') badgeClass = 'card-yellow';
+            else if (c.type === 'card-red') badgeClass = 'card-red';
+
+            const timeStr = c.time !== 'Pre-Match' ? `<span class="timeline-time">${c.time}</span>` : '';
+
+            return `
+                <div class="timeline-item">
+                    <div class="timeline-badge ${badgeClass}"></div>
+                    <div class="timeline-text">
+                        ${timeStr}
+                        <span>${c.text}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 }
 
