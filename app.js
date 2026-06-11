@@ -59,6 +59,10 @@ class FootballAPI {
     getCompetition() {
         return this.fetch(`/competitions/${CONFIG.COMPETITION_CODE}`);
     }
+
+    getScorers(params = {}) {
+        return this.fetch(`/competitions/${CONFIG.COMPETITION_CODE}/scorers`, params);
+    }
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -154,6 +158,7 @@ class WorldCupApp {
         this.currentFilter = 'SCHEDULED';
         this.matchesData = null;
         this.standingsData = null;
+        this.scorersData = null;
 
         this.init();
     }
@@ -228,6 +233,7 @@ class WorldCupApp {
         const results = await Promise.allSettled([
             this.loadMatches(),
             this.loadStandings(),
+            this.loadScorers(),
         ]);
 
         const hasError = results.some(r => r.status === 'rejected');
@@ -561,6 +567,69 @@ class WorldCupApp {
                     <span class="knockout-team-score">${awayScoreDisplay}</span>
                 </div>
                 ${penaltyInfo}
+            </div>
+        `;
+    }
+
+    // ===== SCORERS =====
+    async loadScorers() {
+        try {
+            const data = await this.api.getScorers({ limit: 10 });
+            this.scorersData = data.scorers || [];
+            this.renderScorers();
+        } catch (error) {
+            console.error('Error loading scorers:', error);
+            document.getElementById('scorers-container').innerHTML = this.renderError(
+                'No se pudieron cargar los goleadores',
+                error.message
+            );
+        }
+    }
+
+    renderScorers() {
+        const container = document.getElementById('scorers-container');
+        if (!this.scorersData || this.scorersData.length === 0) {
+            container.innerHTML = this.renderEmpty(
+                '👟',
+                'Datos no disponibles',
+                'Aún no hay goles registrados en el torneo'
+            );
+            return;
+        }
+
+        container.innerHTML = this.scorersData.map((scorer, i) => this.renderScorerCard(scorer, i)).join('');
+    }
+
+    renderScorerCard(scorerInfo, index) {
+        const player = scorerInfo.player;
+        const team = scorerInfo.team;
+        const goals = scorerInfo.goals;
+        const assists = scorerInfo.assists || 0;
+
+        const crest = team?.crest
+            ? `<img class="scorer-team-crest" src="${team.crest}" alt="" loading="lazy" onerror="this.style.display='none'">`
+            : '';
+
+        return `
+            <div class="scorer-card" style="animation-delay: ${index * 60}ms">
+                <div class="scorer-rank">${index + 1}</div>
+                <div class="scorer-info">
+                    <div class="scorer-name">${player?.name || 'Desconocido'}</div>
+                    <div class="scorer-team">
+                        ${crest}
+                        <span>${team?.shortName || team?.name || '—'}</span>
+                    </div>
+                </div>
+                <div class="scorer-stats">
+                    <div class="scorer-goals">
+                        <span class="stat-value">${goals}</span>
+                        <span class="stat-label">Goles</span>
+                    </div>
+                    <div class="scorer-assists">
+                        <span class="stat-value" style="color: var(--text-muted);">${assists}</span>
+                        <span class="stat-label">Asistencias</span>
+                    </div>
+                </div>
             </div>
         `;
     }
