@@ -877,7 +877,7 @@ class WorldCupApp {
         if (!this.standingsData) return;
 
         // Filter only TOTAL standings for group stage
-        const groupStandings = this.standingsData.filter(s => s.type === 'TOTAL' && s.stage === 'GROUP_STAGE');
+        const groupStandings = this.standingsData.filter(s => s.type === 'TOTAL' && (s.stage === 'GROUP_STAGE' || s.stage === 'ALL' || s.group));
 
         if (groupStandings.length === 0) {
             container.innerHTML = this.renderEmpty(
@@ -892,7 +892,7 @@ class WorldCupApp {
     }
 
     renderGroupCard(group, index) {
-        const groupName = group.group ? group.group.replace('GROUP_', '') : '?';
+        const groupName = group.group ? group.group.replace('GROUP_', '').replace('Group ', '') : '?';
 
         const rows = (group.table || []).map((team, pos) => {
             const gd = team.goalDifference;
