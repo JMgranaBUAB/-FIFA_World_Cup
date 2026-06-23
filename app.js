@@ -1081,7 +1081,7 @@ class WorldCupApp {
     // ===== SCORERS =====
     async loadScorers() {
         try {
-            const data = await this.api.getScorers({ limit: 10 });
+            const data = await this.api.getScorers({ limit: 150 });
             this.scorersData = data.scorers || [];
             this.renderScorers();
         } catch (error) {
