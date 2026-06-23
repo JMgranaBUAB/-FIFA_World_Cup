@@ -32,7 +32,7 @@ class FootballAPI {
             return cached.data;
         }
 
-        const response = await window.fetch(url.toString(), { headers });
+        const response = await window.fetch(url.toString(), { headers, cache: 'no-store' });
 
         if (!response.ok) {
             const errorBody = await response.text();
@@ -69,6 +69,9 @@ class FootballAPI {
     }
 }
 
+// ========== CONSTANTS ==========
+const LIVE_STATUSES = ['IN_PLAY', 'PAUSED', 'HALF_TIME', 'EXTRA_TIME', 'PENALTY_SHOOTOUT', 'LIVE'];
+
 // ========== UTILITY FUNCTIONS ==========
 function formatDate(dateStr) {
     const date = new Date(dateStr);
@@ -95,7 +98,11 @@ function getStatusLabel(status) {
         'SCHEDULED': 'Programado',
         'TIMED': 'Programado',
         'IN_PLAY': '🔴 En Vivo',
-        'PAUSED': '⏸ Pausa',
+        'PAUSED': '⏸ Descanso',
+        'HALF_TIME': '⏸ Descanso',
+        'EXTRA_TIME': '🔴 Prórroga',
+        'PENALTY_SHOOTOUT': '🔴 Penaltis',
+        'LIVE': '🔴 En Vivo',
         'FINISHED': 'Finalizado',
         'POSTPONED': 'Aplazado',
         'SUSPENDED': 'Suspendido',
@@ -106,7 +113,7 @@ function getStatusLabel(status) {
 }
 
 function getStatusClass(status) {
-    if (['IN_PLAY', 'PAUSED'].includes(status)) return 'live';
+    if (LIVE_STATUSES.includes(status)) return 'live';
     if (status === 'FINISHED') return 'finished';
     return 'scheduled';
 }
@@ -426,7 +433,7 @@ function generateRoster(teamName, isHome, matchId) {
 
 function generateGoals(match, homeRoster, awayRoster) {
     const isFinished = match.status === 'FINISHED';
-    const isLive = ['IN_PLAY', 'PAUSED'].includes(match.status);
+    const isLive = LIVE_STATUSES.includes(match.status);
     
     if (!isFinished && !isLive) return { homeGoals: [], awayGoals: [] };
     
@@ -482,7 +489,7 @@ function generateGoals(match, homeRoster, awayRoster) {
 
 function generateCommentary(match, homeRoster, awayRoster, homeGoals, awayGoals) {
     const isFinished = match.status === 'FINISHED';
-    const isLive = ['IN_PLAY', 'PAUSED'].includes(match.status);
+    const isLive = LIVE_STATUSES.includes(match.status);
     const homeTeamName = match.homeTeam?.shortName || match.homeTeam?.name || 'Local';
     const awayTeamName = match.awayTeam?.shortName || match.awayTeam?.name || 'Visitante';
     
@@ -770,14 +777,14 @@ class WorldCupApp {
         switch (this.currentFilter) {
             case 'SCHEDULED':
                 filtered = filtered.filter(m =>
-                    ['SCHEDULED', 'TIMED'].includes(m.status)
+                    ['SCHEDULED', 'TIMED', ...LIVE_STATUSES].includes(m.status)
                 );
                 // Sort by date ascending
                 filtered.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
                 break;
             case 'LIVE':
                 filtered = filtered.filter(m =>
-                    ['IN_PLAY', 'PAUSED'].includes(m.status)
+                    LIVE_STATUSES.includes(m.status)
                 );
                 break;
             case 'FINISHED':
@@ -806,7 +813,7 @@ class WorldCupApp {
 
     renderMatchCard(match, index) {
         const isFinished = match.status === 'FINISHED';
-        const isLive = ['IN_PLAY', 'PAUSED'].includes(match.status);
+        const isLive = LIVE_STATUSES.includes(match.status);
         const homeScore = match.score?.fullTime?.home;
         const awayScore = match.score?.fullTime?.away;
         const hasScore = homeScore !== null && homeScore !== undefined;

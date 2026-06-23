@@ -437,7 +437,7 @@ a:hover {
 
 .match-card.live {
     border-color: var(--accent-rose);
-    animation: livePulse 2s ease-in-out infinite;
+    animation: staggerIn 0.5s ease-out forwards, livePulse 2s ease-in-out infinite;
 }
 
 @keyframes livePulse {
