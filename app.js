@@ -671,6 +671,13 @@ class WorldCupApp {
             }
         });
 
+        document.getElementById('knockout-tree-container').addEventListener('click', (e) => {
+            const card = e.target.closest('.bracket-match-card');
+            if (card && card.dataset.matchId) {
+                this.openMatchDetail(parseInt(card.dataset.matchId));
+            }
+        });
+
         // Modal close buttons
         document.getElementById('modal-close-btn').addEventListener('click', () => {
             this.closeMatchDetail();
@@ -870,6 +877,7 @@ class WorldCupApp {
             this.standingsData = data.standings || [];
             this.renderStandings();
             this.renderKnockout();
+            this.renderKnockoutTree();
         } catch (error) {
             console.error('Error loading standings:', error);
             document.getElementById('standings-container').innerHTML = this.renderError(
@@ -1074,6 +1082,127 @@ class WorldCupApp {
                     <span class="knockout-team-score">${awayScoreDisplay}</span>
                 </div>
                 ${penaltyInfo}
+            </div>
+        `;
+    }
+
+    renderKnockoutTree() {
+        const container = document.getElementById('knockout-tree-container');
+        if (!this.matchesData) {
+            container.innerHTML = this.renderEmpty(
+                '🌳',
+                'Árbol no disponible',
+                'Los datos aparecerán cuando se definan los cruces'
+            );
+            return;
+        }
+
+        const knockoutMatches = this.matchesData.filter(m => m.stage !== 'GROUP_STAGE');
+
+        if (knockoutMatches.length === 0) {
+            container.innerHTML = this.renderEmpty(
+                '🌳',
+                'Árbol aún no definido',
+                'Los cruces se generarán al completarse la fase de grupos'
+            );
+            return;
+        }
+
+        const stageMap = new Map();
+        knockoutMatches.forEach(match => {
+            const stage = match.stage;
+            if (!stageMap.has(stage)) {
+                stageMap.set(stage, []);
+            }
+            stageMap.get(stage).push(match);
+        });
+
+        const order = ['ROUND_OF_32', 'LAST_32', 'ROUND_OF_16', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'FINAL'];
+        
+        const sortedStages = [...stageMap.entries()]
+            .filter(([stage]) => order.includes(stage))
+            .sort((a, b) => getStageOrder(a[0]) - getStageOrder(b[0]));
+
+        if (sortedStages.length === 0) {
+            container.innerHTML = this.renderEmpty(
+                '🌳',
+                'Árbol aún no definido',
+                'Los cruces se generarán al completarse la fase de grupos'
+            );
+            return;
+        }
+
+        let html = '<div class="bracket-wrapper">';
+
+        sortedStages.forEach(([stage, matches]) => {
+            matches.sort((a, b) => a.id - b.id);
+
+            html += `
+                <div class="bracket-column" data-stage="${stage}">
+                    <h3 class="bracket-stage-title">${getStageName(stage)}</h3>
+                    <div class="bracket-matches">
+                        ${matches.map(match => this.renderBracketMatch(match)).join('')}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    renderBracketMatch(match) {
+        const homeScore = match.score?.fullTime?.home;
+        const awayScore = match.score?.fullTime?.away;
+        const hasScore = homeScore !== null && homeScore !== undefined;
+        const isFinished = match.status === 'FINISHED';
+
+        const homeWinner = isFinished && hasScore && homeScore > awayScore;
+        const awayWinner = isFinished && hasScore && awayScore > homeScore;
+
+        const penHome = match.score?.penalties?.home;
+        const penAway = match.score?.penalties?.away;
+        const hasPenalties = penHome !== null && penHome !== undefined;
+
+        const homePenWinner = hasPenalties && penHome > penAway;
+        const awayPenWinner = hasPenalties && penAway > penHome;
+
+        const finalHomeWinner = homeWinner || homePenWinner;
+        const finalAwayWinner = awayWinner || awayPenWinner;
+
+        const homeCrest = match.homeTeam?.crest
+            ? `<img class="tree-crest" src="${match.homeTeam.crest}" alt="" loading="lazy" onerror="this.style.display='none'">`
+            : '';
+        const awayCrest = match.awayTeam?.crest
+            ? `<img class="tree-crest" src="${match.awayTeam.crest}" alt="" loading="lazy" onerror="this.style.display='none'">`
+            : '';
+
+        const homeScoreDisplay = hasScore ? homeScore : '';
+        const awayScoreDisplay = hasScore ? awayScore : '';
+
+        const penaltyInfo = hasPenalties
+            ? `<div class="tree-penalties">Pen: ${penHome} - ${penAway}</div>`
+            : '';
+
+        return `
+            <div class="bracket-match-wrapper">
+                <div class="bracket-match-card" data-match-id="${match.id}">
+                    <div class="tree-team ${finalHomeWinner ? 'winner' : ''}">
+                        <div class="tree-team-info">
+                            ${homeCrest}
+                            <span class="tree-team-name">${match.homeTeam?.shortName || match.homeTeam?.tla || match.homeTeam?.name || 'TBD'}</span>
+                        </div>
+                        <span class="tree-team-score">${homeScoreDisplay}</span>
+                    </div>
+                    <div class="tree-team ${finalAwayWinner ? 'winner' : ''}">
+                        <div class="tree-team-info">
+                            ${awayCrest}
+                            <span class="tree-team-name">${match.awayTeam?.shortName || match.awayTeam?.tla || match.awayTeam?.name || 'TBD'}</span>
+                        </div>
+                        <span class="tree-team-score">${awayScoreDisplay}</span>
+                    </div>
+                    ${penaltyInfo}
+                </div>
             </div>
         `;
     }
